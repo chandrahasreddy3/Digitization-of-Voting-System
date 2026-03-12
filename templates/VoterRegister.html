@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter Registration</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom right, #6a11cb, #2575fc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .outer-container {
+            width: 1000px;
+            height: 750px;
+            max-width: 1100px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            color: black;
+            padding: 15px;
+            font-size: 40px;
+            font-weight: bolder;
+            width: 350px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            color: #555;
+        }
+
+        .main-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 20px;
+        }
+
+        .phone-input {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            width: 100%;
+            height: 40px; /* Ensures both elements have the same height */
+        }
+
+        .prefix {
+            background-color: #f0f0f0;
+            padding: 0 12px; /* Reduce padding to match input height */
+            border-right: 1px solid #ddd;
+            color: #555;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            height: 100%; /* Matches input height */
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .container1 {
+            flex: 1;
+            background: #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            width: 430px;
+            height: 550px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .container2 { 
+            flex:1;
+            background: #ccc;
+            padding: 20px; 
+            display: inline-block; 
+            border-radius: 10px;
+            cursor: pointer; 
+        }
+
+        .form{ width: 450px; }
+        
+        .image-verification {
+            width: 430px;
+            height: 550px;
+            border: 2px dashed #555;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 18px;
+            color: #555;
+            background-color: #f9f9f9;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .camera-container {
+            width: 430px;
+            height: 550px;
+            padding: 20px;
+            display: none;
+            border-radius: 10px;
+            border: 2px dashed #555;
+            position: relative;
+            overflow: hidden;
+        }
+
+        video, canvas, img {
+            width: 430px;
+            height: 550px;
+            object-fit: cover;
+        }
+
+        video { 
+            width: 430px;
+            height: 550px;
+            display: block; }
+
+        canvas, img { 
+            width: 430px;
+            height: 550px;
+            display: none; }
+
+        .button-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        .capture-button,.retake-button { padding: 10px; background: rgba(0, 0, 0, 0.6); color: white; border: none; cursor: pointer; border-radius: 5px; }
+        .retake-button:hover, .capture-button:hover { background: rgba(0, 0, 0, 0.8); }
+
+        .submit-container { margin-top: 20px; text-align: center;}
+
+        .submit-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            background-color: #2575fc;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .submit-btn:hover { background-color: #1b5dc1;}
+
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        function allowOnlyNumbers(event) {
+            const keyCode = event.which ? event.which : event.keyCode;
+            if (keyCode < 48 || keyCode > 57) {
+                event.preventDefault();
+            }
+        }
+
+        function validateForm() {
+            const dobInput = document.getElementById('dob');
+            const phoneInput = document.getElementById('phone');
+            const aadharInput = document.getElementById('aadhar');
+
+            if (phoneInput.value.length !== 10) {
+                alert('Phone number must be exactly 10 digits.');
+                phoneInput.focus();
+                return false;
+            }
+
+            if (aadharInput.value.length !== 12) {
+                alert('Aadhaar number must be exactly 12 digits.');
+                aadharInput.focus();
+                return false;
+            }
+
+            if (!isValidAge(dobInput.value)) {
+                dobInput.value = '';
+                return false;
+            }
+
+            if (confirm('Your application has been registered successfully! Click OK to continue.')) {
+                window.location.href = 'index.html';
+            }
+            return false;
+        }
+
+        function isValidAge(dob) {
+            const dobDate = new Date(dob);
+            const today = new Date();
+            let age = today.getFullYear() - dobDate.getFullYear();
+            const monthDiff = today.getMonth() - dobDate.getMonth();
+            const dayDiff = today.getDate() - dobDate.getDate();
+
+            if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+                age--;
+            }
+
+            if (age < 18) {
+                alert('Age should be greater than 17.');
+                return false;
+            }
+            return true;
+        }
+
+        function openCamera() {
+            const imageContainer = document.getElementById('imageContainer');
+            const video = document.createElement('video');
+            video.setAttribute('autoplay', '');
+            video.setAttribute('playsinline', '');
+
+            // Clear previous content
+            imageContainer.innerHTML = '';
+            imageContainer.appendChild(video);
+
+            // Request camera access
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    video.srcObject = stream;
+                })
+                .catch(error => {
+                    imageContainer.innerHTML = 'Camera not accessible';
+                    console.error('Error accessing camera:', error);
+                });
+        }
+    </script>
+</head>
+<body>
+
+    <div class="outer-container">
+        <div class="header">Voter Registration</div>
+
+
+        <div class="main-container">
+            <div class="container1" id="voterDetails">
+                <div class = "form">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" placeholder="Enter Your Name" name="name" required>
+    
+                    <label for="gender">Gender:</label>
+                    <select id="gender" name="gender" required>
+                        <option value="" disabled selected>Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+    
+                    <label for="dob">Date of Birth:</label>
+                    <input type="date" id="dob" name="dob" required>
+    
+                    <label for="phone">Phone Number:</label>
+                    <div class="phone-input">
+                        <span class="prefix">+91</span>
+                        <input style ="margin-bottom: 0px; border-radius: 10px;" type="text" id="phone" name="phone" placeholder="10-digit phone number" maxlength="10" onkeypress="allowOnlyNumbers(event)" required>
+                    </div>
+    
+                    <label for="aadhar">Aadhar Number:</label>
+                    <input type="text" id="aadhar" name="aadhar" placeholder="12-digit Aadhaar number" maxlength="12" onkeypress="allowOnlyNumbers(event)" required>
+    
+                    <label for="voterId">Voter ID:</label>
+                    <input type="text" id="voterId" name="voterId" placeholder="10-digit Voter ID (uppercase only)" maxlength="10" oninput="this.value = this.value.toUpperCase()" pattern="[A-Z0-9]{10}" required>
+
+                    <label for="constitutions">Constitution:</label>
+                    <select id="constitutions" name="constitutions" required>
+                        <option value="" disabled selected>Select Constituency</option>
+                    </select>
+    
+                </div>
+            </div>
+
+            <div class="container2" id="videoCapturing" onclick="openCamera()">
+                <div class="image-verification" id="imageContainer" onclick="openCamera()">
+                    Click to open camera
+                </div>
+            </div>
+            <div class="camera-container" id="cameraContainer">
+                <video id="video" autoplay></video>
+                <canvas id="canvas"></canvas>
+                <img id="capturedImage">
+                <div class="button-container">
+                    <button class="capture-button" id = "capture">Capture</button>
+                    <button class="retake-button" id = "retake" style="display: none;">Retake</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="submit-container">
+            <button class="submit-btn" id = "submit">Submit Button</button>
+        </div>
+    </div>
+
+</body>
+<script>
+    async function fetchNames() {
+        const response = await fetch('/getConstitutions');
+        const names = await response.json();
+        const select = document.getElementById('constitutions');
+        names.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+    }
+    fetchNames();
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const capturedImage = document.getElementById('capturedImage');
+    const captureBtn = document.getElementById('capture');
+    const retakeBtn = document.getElementById('retake');
+    const videoCapturing = document.getElementById('videoCapturing');
+    const cameraContainer = document.getElementById('cameraContainer');
+    const submitBtn = document.getElementById('submit');
+    const context = canvas.getContext('2d');
+    let stream = null;
+
+    function openCamera() {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(s => {
+                stream = s;
+                video.srcObject = stream;
+                cameraContainer.style.display = 'inline-block';
+                videoCapturing.style.display = 'none';
+            })
+            .catch(err => console.error("Error accessing webcam: ", err));
+    }
+
+    captureBtn.addEventListener('click', () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        capturedImage.src = canvas.toDataURL('image/png');
+        capturedImage.style.display = 'block';
+        video.style.display = 'none';
+        captureBtn.style.display = 'none';
+        retakeBtn.style.display = 'inline-block';
+
+        // Stop video stream
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+    });
+
+    retakeBtn.addEventListener('click', () => {
+        openCamera();
+        capturedImage.style.display = 'none';
+        video.style.display = 'block';
+        captureBtn.style.display = 'inline-block';
+        retakeBtn.style.display = 'none';
+    });
+
+    submitBtn.addEventListener('click', () => {
+        submitBtn.disabled = true;
+        setTimeout(() => {
+            submitBtn.disabled = false;
+        }, 10000);  // 10 seconds in milliseconds
+
+        const name = document.getElementById('name').value.trim();
+        const gender = document.getElementById('gender').value;
+        const dob = document.getElementById('dob').value;
+        const phone = document.getElementById('phone').value.trim();
+        const aadhar = document.getElementById('aadhar').value.trim();
+        const voterId = document.getElementById('voterId').value.trim();
+        const constitution = document.getElementById('constitutions').value;
+
+        if (!capturedImage.src) {
+            alert('Please capture an image before submitting.');
+            submitBtn.disabled = false;  // Re-enable if validation fails
+            return;
+        }
+        if (!name) {
+            alert("Please enter the 'Name'!");
+            submitBtn.disabled = false;
+            return;
+        }
+        if (!gender) {
+            alert("Please select the 'Gender'!");
+            submitBtn.disabled = false;
+            return;
+        }
+        if (!dob) {
+            alert("Please enter the 'Date of Birth'!");
+            submitBtn.disabled = false;
+            return;
+        }
+        if (!phone) {
+            alert("Please enter the 'Phone Number'!");
+            submitBtn.disabled = false;
+            return;
+        }
+        if (!aadhar) {
+            alert("Please enter the 'Aadhar Number'!");
+            submitBtn.disabled = false;
+            return;
+        }
+        if (!voterId) {
+            alert("Please enter the 'Voter ID'!");
+            submitBtn.disabled = false;
+            return;
+        }
+        if (!constitution) {
+            alert("Please select the 'Constituency'!");
+            submitBtn.disabled = false;
+            return;
+        }
+
+        // Send the image to the server
+        fetch('/submitVoterRegistration', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                Name: name,
+                Gender: gender,
+                Dob: dob,
+                Phone: phone,
+                Aadhar: aadhar,
+                VoterId: voterId,
+                Constitution: constitution,
+                Image: capturedImage.src
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Voter Registration Successful!');
+                window.location.href = '/';
+            } else {
+                alert('Failed to Register, Please try again!');
+            }
+        })
+        .catch(error => console.error('Error:', error))
+        .finally(() => submitBtn.disabled = false);  // Re-enable if error occurs
+    });
+
+</script>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom right, #6a11cb, #2575fc);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            box-sizing: border-box;
+            color: white;
+        }
+        header {
+            margin-bottom:20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 36px;
+            cursor: pointer;
+            color: white;
+            text-decoration: none;
+        }
+        h1:hover {
+            color: #ddd;
+        }
+        a {
+            text-decoration: none;
+        }
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 20px 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        input[type="text"], input[type="password"] {
+            width: 250px;
+            padding: 10px;
+            margin: 0px 0;
+            border-radius: 5px;
+            border: none;
+            font-size: 18px;
+        }
+        .verification {
+            width: 150px;
+            height: 150px;
+            background-color: white;
+            margin: 20px auto;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .status {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .verified {
+            color: green;
+        }
+        .not-verified {
+            color: red;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 30px;
+            border: none;
+            border-radius: 15px;
+            background-color: #3498db;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+        }
+    </style>
+    <script>
+        function checkVerification(isVerified) {
+            const statusText = document.getElementById('statusText');
+            if (isVerified) {
+                statusText.innerHTML = '<span class="verified">✔ Verified</span>';
+            } else {
+                statusText.innerHTML = '<span class="not-verified">✖ Not Verified</span>';
+            }
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Admin Login</h1>
+    </header>
+    <div class="login-container"> 
+        {% if error %}
+            <p style="color: red; font-weight: bold;">{{ error }}</p>
+        {% endif %}
+        <form action="/AdminLogin" method="POST">
+            <p><input type="text" name="admin_id" placeholder="Enter Admin ID:" required></p>
+            <p><input type="password" name="password" placeholder="Enter Password:" required></p>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter Login Page</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box;
+            background: linear-gradient(to bottom right, #6a11cb, #2575fc);
+            background-size: cover;
+        }
+        h1 {
+            font-size: 28px;
+            margin: 0;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 600px;
+            margin-top: 20px;
+        }
+        select, input, .submit {
+            font-size: 18px;
+        }
+        input[type="text"] {
+            width: 250px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        .image-verification {
+            width: 500px;
+            height: 350px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            color: #555;
+            background-color: #eaeaea;
+            overflow: hidden;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        .verification-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .verified {
+            color: green;
+        }
+        .not-verified {
+            color: red;
+        }
+        button {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 10px;
+            background-color: #3498db;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        #VoterInfo div {
+            margin-left: 10px;
+            margin-right: 10px;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #000;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 50px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Voter Login</h2>
+        <div style="margin-bottom: 10px;">
+            <label for="voterId" style="margin-left: 10px; margin-right: 5px;">Enter Voter ID:</label>
+            <input type="text" id="voterId" name="voterId" placeholder="Voter ID" maxlength="10"
+                pattern="[A-Z0-9]{10}" title="Voter ID must be exactly 10 alphanumeric characters in uppercase." required
+                oninput="handleVoterIdChange()" />
+            <button class="submit" style="background-color: green; margin-left: 20px;" onclick="fetchVoterInfo()">Submit</button>
+        </div>
+
+        <!-- Voter Info Section -->
+        <div id="VoterInfo" style="margin-bottom: 10px; display: none; flex-direction: column; align-items: center; justify-content: center;">
+            <div>Voter Name: <div id="VoterName" style="display:inline; color: green;"></div></div>
+            <div style="margin-bottom: 20px;">Voter Constituency: <div id="VoterConstituency" style="display:inline; color: green;"></div></div>
+            <div style="margin-bottom: 10px;">Vote Status: <div id="VoteStatus" style="display:inline;"></div></div>
+        </div>
+
+        <!-- Voter Not Identified -->
+        <div id="VoterNotIdentified" style="margin-top:30px; margin-bottom: 30px; font-size: 18px; color: red; display: none;">Voter Not Identified!</div>
+
+        <div class="image-verification" id="imageContainer">Face Verification</div>
+        <div class="verification-status" id="verificationStatus">
+        </div>
+        <a id="voteLink" style="text-decoration: none;">
+            <button id="voteButton" disabled>Login</button>
+        </a>
+    </div>
+
+    <script>
+        let cameraStream = null;
+        let video = null;
+        let Vote = null;
+        let Constituency = null;
+        let Aadhar = null;
+        let frameInterval = null;
+
+        function enableVoteButton() {
+            const voteLink = document.getElementById('voteLink');
+            const voteButton = document.getElementById('voteButton');
+            
+            voteLink.href = `/VotePage?constituency=${encodeURIComponent(Constituency)}&aadhar=${encodeURIComponent(Aadhar)}`;
+            voteButton.disabled = false;
+        }
+
+        function handleVoterIdChange() {
+            closeCamera();
+            document.getElementById('VoterInfo').style.display = 'none';
+            document.getElementById('VoterNotIdentified').style.display = 'none';
+        }
+        
+        function openCamera() {
+            const imageContainer = document.getElementById('imageContainer');
+            video = document.createElement('video');
+            video.setAttribute('autoplay', '');
+            video.setAttribute('playsinline', '');
+
+            // Clear the container and append the new video
+            imageContainer.innerHTML = '';
+            imageContainer.appendChild(video);
+
+            // Request camera access
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    cameraStream = stream;
+                    video.srcObject = stream;
+                    startFrameSending(); // Start sending frames once the camera opens
+                })
+                .catch(error => {
+                    imageContainer.innerHTML = 'Camera not accessible';
+                    console.error('Error accessing camera:', error);
+                });
+        }
+
+        function closeCamera() {
+            if (cameraStream) {
+                const tracks = cameraStream.getTracks();
+                tracks.forEach(track => track.stop());
+                cameraStream = null;
+                video = null;
+                clearInterval(frameInterval); // Stop sending frames
+                document.getElementById('imageContainer').innerHTML = 'Click to open camera';
+            }
+        }
+
+        function startFrameSending() {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            // Set canvas size same as video for accurate capture
+            canvas.width = 500;
+            canvas.height = 350;
+
+            frameInterval = setInterval(() => {
+                if (video && cameraStream) {
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const frameData = canvas.toDataURL('image/jpeg');  // Convert frame to base64
+
+                    // Send frame to backend
+                    fetch('/process_frame', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: frameData })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const verificationStatus = document.getElementById('verificationStatus');
+                        
+                        if (data.status === "success") {
+                            if (data.match === true) {
+                                verificationStatus.innerHTML = '<span class="verified">Verified ✅</span>';
+                                enableVoteButton();
+                                // Freeze the last frame in the container before ending the stream
+                                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                imageContainer.innerHTML = '';
+                                imageContainer.appendChild(canvas);
+
+                                clearInterval(frameInterval);  // Stop sending frames
+
+                                // Stop video stream
+                                if (cameraStream) {
+                                    cameraStream.getTracks().forEach(track => track.stop());
+                                    video.srcObject = null;
+                                }
+
+                            } else {
+                                // Face didn't match: keep the video running, show "Not Verified"
+                                verificationStatus.innerHTML = '<span class="not-verified">Not Verified ❌</span>';
+                                document.getElementById('loginButton').disabled = true;
+                            }
+                        } else {
+                            // Error case: show error message
+                            verificationStatus.innerHTML = `<span class="error">${data.message}</span>`;
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error sending frame:', err);
+                        const verificationStatus = document.getElementById('verificationStatus');
+                        verificationStatus.innerHTML = '<span class="error">Error processing frame</span>';
+                    });
+                }
+            }, 1000);  // Send frames every 1 second
+        }
+
+
+        async function fetchModel(constituency, VoterName, voterId) {
+            const imageContainer = document.getElementById('imageContainer');
+            imageContainer.innerHTML = '<div class="spinner"></div>';
+            try {
+                const response = await fetch('/load_model', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        constituency: constituency,
+                        voterName: VoterName,
+                        voterId: voterId
+                    })
+                });
+
+                const data = await response.json();
+                if (data.status === "success") {
+                    console.log("Model loaded successfully");
+                    return true;
+                } else {
+                    console.error("Error loading model:", data.message);
+                    alert(`Error: ${data.message}`);
+                    return false;
+                }
+            } catch (err) {
+                console.error('Error fetching model:', err);
+                alert('Error fetching model. Please try again later.');
+                return false;
+            }
+        }
+
+        const verified = "{{ verified }}";
+        async function fetchVoterInfo() {
+            const voterId = document.getElementById('voterId').value;
+            if (verified === "N") {
+                alert("Voting has not started yet!");
+                closeCamera();
+                return;
+            }
+            else if (voterId.length === 10) {
+                try {
+                    const response = await fetch(`/getVoterInfo/${voterId}`);
+                    const data = await response.json();
+
+                    if (data.status === "success") {
+                        document.getElementById('VoterName').textContent = data.VoterName;
+                        document.getElementById('VoterConstituency').textContent = data.Constituency;
+                        if (data.Vote === "N") {
+                            document.getElementById('VoteStatus').textContent = "Not Voted!";
+                            document.getElementById('VoteStatus').style.color = 'green';
+                        }
+                        else {
+                            document.getElementById('VoteStatus').textContent = "Voted!";
+                            document.getElementById('VoteStatus').style.color = 'red';
+                        }
+                        
+                        Constituency = data.Constituency;
+                        Vote = data.Vote;
+                        Aadhar = data.Aadhar;
+                        document.getElementById('VoterInfo').style.display = 'flex';
+                        document.getElementById('VoterNotIdentified').style.display = 'none';
+
+                        // Fetch model, only open camera if successful
+                        if(data.Vote === "Y") {
+                            alert("You have already voted!");
+                            closeCamera();
+                        } else {
+                            const modelLoaded = await fetchModel(data.Constituency, data.VoterName, voterId);
+                            if (modelLoaded) {
+                                openCamera();
+                            }
+                        }
+                    } else {
+                        document.getElementById('VoterInfo').style.display = 'none';
+                        document.getElementById('VoterNotIdentified').style.display = 'block';
+                        closeCamera();
+                    }
+                } catch (err) {
+                    console.error('Error fetching voter info:', err);
+                    alert('Error fetching voter information. Please try again later.');
+                    closeCamera();
+                }
+            } else {
+                alert("Voter ID must be exactly 10 alphanumeric characters.");
+                closeCamera();
+            }
+        }
+    </script>
+</body>
+</html>

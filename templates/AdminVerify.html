@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Verification</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom right, #6a11cb, #2575fc);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            width : 95vw;
+            box-sizing: border-box;
+        }
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            color: white;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 0px;
+            margin-right: 40px;
+            color: #fff;
+        }
+        
+        .main-container {
+            display: flex;
+            margin-top: 20px;
+            gap: 20px;
+        }
+
+        /* Parent Wrapper */
+        .voter-wrapper, .candidate-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 650px;
+            height: 550px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .container-heading h2 {
+            color: #fff;
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .voter-container, .candidate-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .voter, .candidate {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .voter:hover, .candidate:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+        .voter img, .candidate img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .info {
+            flex: 1;
+            margin-left: 20px;
+            font-size: 20px;
+            color: #333;
+            flex-direction: row;
+        }
+        .info p {
+            font-size: 15px;
+        }
+        button {
+            padding: 10px 25px;
+            border: none;
+            width: 120px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .allow {
+            background-color: green;
+        }
+        .deny {
+            background-color: red;
+        }
+        button:hover {
+            transform: translateY(-3px);
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Scrollbar styling */
+        .voter-container::-webkit-scrollbar,
+        .candidate-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .voter-container::-webkit-scrollbar-thumb,
+        .candidate-container::-webkit-scrollbar-thumb {
+            background: #2575fc;
+            border-radius: 8px;
+        }
+
+        .confirm-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .confirm-btn, .delete-btn, .logout-btn {
+            margin-top: 30px;
+            margin-left: 20px;
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .confirm-btn, .logout-btn, .delete-btn {
+            margin-top: 20px;
+            margin-top: 10px;
+            width: 150px;
+            height: 50px;
+            margin-right: 10px;
+            margin-left: 0px
+        }
+
+        .delete-btn {
+            background-color: red;
+            width: 200px;
+            margin-right: 20px;
+        }
+
+        .delete-btn:hover {
+            background-color: #9c3024;
+            transform: translateY(-3px);
+        }
+
+        .confirm-btn {
+            background-color: rgb(1, 160, 1);
+            width: 200px;
+            margin-right: 20px;
+        }
+
+        .confirm-btn:hover {
+            background-color: #028600;
+            transform: translateY(-3px);
+        }
+
+        .logout-btn {
+            background-color: #0289e2;
+            width: 200px;
+            margin-right: 20px;
+        }
+
+        .logout-btn:hover {
+            background-color: #015e9d;
+            transform: translateY(-3px);
+        }
+        
+        #confirm-btn, #delete-btn {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        #confirm-btn.show, #delete-btn.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #confirm-btn.hidden, #delete-btn.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #progress-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .spinner-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        /* Spinner animation */
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Keyframe for the spinning effect */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Smooth fade transition */
+        .fade {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .fade.show {
+            opacity: 1;
+        }
+
+        /* Optional: Disable pointer events when hidden */
+        .hidden {
+            display: none;
+        }
+</style>
+
+    </style>
+</head>
+<body>
+    <header>
+        <h1>{{ constituency_name }} Constituency Verification</h1>
+    </header>
+
+    <div class="main-container">
+        <!-- Voter Wrapper -->
+        <div class="voter-wrapper">
+            <div class="container-heading">
+                <h2>Voters</h2>
+            </div>
+            <div class="voter-container">
+                {% if voters %}
+                    {% for voter in voters %}
+                    <div class="voter">
+                        <img src="{{ voter['imagePath'] }}" alt="Voter Photo">
+                        <div class="info">
+                            <p><strong>Name:</strong> {{ voter['name'] }}</p>
+                            <p><strong>DOB:</strong> {{ voter['dob'] }}</p>
+                            <p><strong>Aadhar:</strong> {{ voter['aadhar'] }}</p>
+                        </div>
+                        <div class="button-container">
+                            <form action="{{ url_for('deny', entity='voter', entity_id=voter['aadhar']) }}" method="POST">
+                                <button type="submit" class="deny">Deny</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="display: flex; align-items: center; justify-content: center; font-size: 20px; color: red; font-weight: bolder;">
+                        <p>No voters are registered for this Constituency!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Candidate Wrapper -->
+        <div class="candidate-wrapper">
+            <div class="container-heading">
+                <h2>Candidates</h2>
+            </div>
+            <div class="candidate-container">
+                {% if candidates %}
+                    {% for candidate in candidates %}
+                    <div class="candidate">
+                        <img src="{{ candidate['imagePath'] }}" alt="Candidate Photo">
+                        <img src="{{ candidate['symbolPath'] }}" alt="Candidate Symbol">
+                        <div class="info">
+                            <p><strong>Name:</strong> {{ candidate['name'] }}</p>
+                            <p><strong>DOB:</strong> {{ candidate['dob'] }}</p>
+                            <p><strong>Aadhar:</strong> {{ candidate['aadhar'] }}</p>
+                            <p><strong>Contest Type:</strong> {{ candidate['contestType'] }}</p>
+                            {% if candidate['contestType'] == "Party"%}
+                                <p><strong>Party Name:</strong> {{ candidate['partyName'] }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="button-container">
+                            <form action="{{ url_for('deny', entity='candidate', entity_id=candidate['aadhar']) }}" method="POST">
+                                <button type="submit" class="deny">Deny</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="display: flex; align-items: center; justify-content: center; font-size: 20px; color: red; font-weight: bolder;">
+                        <p>No candidates registered for this Constituency!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div id="progress-container" style="display: flex; flex-direction: row; align-items: center;">
+        <div class="spinner-container" style="margin-right: 10px;">
+            <div class="spinner"></div>
+        </div>
+        <div id="progress" style="margin-top: 10px; font-size: 1.2em; color: white; margin-right: 5px;">Model Status: </div>
+        <div id="progress-value" style="margin-top: 10px; font-size: 1.2em;"></div>
+    </div>
+    <div class="confirm-container">
+        <button id="confirm-btn" type="button" class="confirm-btn" onclick="startTraining()">Train Model</button>
+        <button id="delete-btn" type="button" class="delete-btn" onclick="deleteModel('{{ constituency_name }}')">Delete Model</button>
+        <a href="{{ url_for('Home') }}">
+            <button type="submit" class="logout-btn">Logout</button>
+        </a>
+    </div>
+
+    <script>
+        // Check training progress on page load and hide "Confirm" button if already started
+        window.onload = function () {
+            checkProgress();
+        };
+    
+        function startTraining() {
+            const confirmBtn = document.getElementById('confirm-btn');
+            const deleteBtn = document.getElementById('delete-btn');
+            const progressContainer = document.getElementById('progress-container');
+            const spinner = document.querySelector('.spinner');
+            const progressValue = document.getElementById('progress-value');
+    
+            fetch('/ConfirmTraining/{{ constituency_name }}')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to start training');
+                    }
+                    return response.text();
+                })
+                .then(message => {
+                    alert(message);
+    
+                    // Hide buttons with transition
+                    confirmBtn.classList.remove('show');
+                    setTimeout(() => confirmBtn.classList.add('hidden'), 300);
+                    deleteBtn.classList.remove('show');
+                    setTimeout(() => deleteBtn.classList.add('hidden'), 300);
+                    
+                    spinner.style.display = 'block';
+                    progressValue.textContent = '0%';
+                    checkProgress();
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    confirmBtn.classList.remove('hidden');
+                    setTimeout(() => confirmBtn.classList.add('show'), 10);
+                });
+        }
+    
+        function checkProgress() {
+            const confirmBtn = document.getElementById('confirm-btn');
+            const deleteBtn = document.getElementById('delete-btn');
+            const progressContainer = document.getElementById('progress-container');
+            const progressValue = document.getElementById('progress-value');
+            const spinner = document.querySelector('.spinner');
+    
+            // Polling every 2 seconds to check progress
+            const intervalId = setInterval(() => {
+                fetch(`/checkProgress/{{ constituency_name }}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.progress === -1 && data.model_path === 0) {
+                            // Show confirm button, hide everything else
+                            confirmBtn.classList.remove('hidden');
+                            setTimeout(() => confirmBtn.classList.add('show'), 10);
+                            deleteBtn.classList.remove('show');
+                            setTimeout(() => deleteBtn.classList.add('hidden'), 300);
+                            
+                            progressValue.textContent = 'Not Trained Yet!';
+                            spinner.style.display = 'none';
+                        }
+    
+                        // Show delete button only if training is complete
+                        else if (data.progress === 100 && data.model_path === 1) {
+                            deleteBtn.classList.remove('hidden');
+                            setTimeout(() => deleteBtn.classList.add('show'), 10);
+                            confirmBtn.classList.remove('show');
+                            setTimeout(() => confirmBtn.classList.add('hidden'), 300);
+                            clearInterval(intervalId);
+                            
+                            progressValue.textContent = 'Trained Successfully!';
+                            spinner.style.display = 'none';
+                        }
+    
+                        // Show progress if training is ongoing
+                        else if (data.progress >= 0 && data.progress < 100) {
+                            deleteBtn.classList.remove('show');
+                            setTimeout(() => deleteBtn.classList.add('hidden'), 300);
+                            confirmBtn.classList.remove('show');
+                            setTimeout(() => confirmBtn.classList.add('hidden'), 300);
+                            
+                            spinner.style.display = 'block';
+                            progressValue.textContent = `${data.progress}%`;
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error fetching progress:', err);
+                        clearInterval(intervalId);
+                    });
+            }, 2000); // Poll every 2 seconds
+        }
+    
+        function deleteModel(constituencyName) {
+            if (confirm("Are you sure you want to delete this model? This action is irreversible!")) {
+                fetch(`/deleteModel/${constituencyName}`, {
+                    method: 'DELETE'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message || data.error);
+                        // Reset buttons on successful delete
+                        const confirmBtn = document.getElementById('confirm-btn');
+                        const deleteBtn = document.getElementById('delete-btn');
+                        const progressContainer = document.getElementById('progress-container');
+    
+                        confirmBtn.classList.remove('hidden');
+                        setTimeout(() => confirmBtn.classList.add('show'), 10);
+                        deleteBtn.classList.remove('show');
+                        setTimeout(() => deleteBtn.classList.add('hidden'), 300);
+                        window.location.reload();
+                    })
+                    .catch(err => console.error('Error deleting model:', err));
+            }
+        }
+    </script>
+    
+    
+    
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Page</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #8e44ad, #3498db);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 90vh;
+            box-sizing: border-box;
+            color: white;
+        }
+        header {
+            margin-bottom: 10px;
+            text-align: center;
+            width: 100%;
+        }
+        h1 {
+            font-size: 36px;
+        }
+        .details-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto;
+            gap: 10px 40px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 30px 50px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 20px; /* Increased font size */
+            color: #fff;
+        }
+
+        .image-label-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .details-container img.candidate-photo,
+        .details-container img.symbol {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .details-container p {
+            grid-column: 1 / -1;
+            text-align: left;
+            margin: 5px 0;
+        }
+        
+
+        .nota-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            margin: 0 auto;
+            font-size: 22px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .nota-container img.symbol {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+        
+        footer {
+            width: 100%;
+            padding: 20px;
+            background-color: #333;
+            color: white;
+            position: fixed;
+            bottom: 0;
+            text-align: center;
+            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 15px;
+            background-color: #3498db;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Thank You for Voting</h1>
+        <h1>In {{Constituency}} Constituency!</h1>
+    </header>
+    {% if CandidateName == "NOTA" %}
+        <!-- NOTA Container -->
+        <div class="nota-container">
+            <img src="../static/Nota.png" alt="NOTA Symbol" class="symbol">
+            <p><strong>NOTA</strong></p>
+        </div>
+    {% else %}
+        <!-- Regular Candidate Container -->
+        <div class="details-container">
+            <div class="image-label-container">
+                <span style="margin-bottom: 10px;">Candidate Photo</span>
+                <img src="{{ Image }}" alt="Candidate Photo" class="candidate-photo">
+            </div>
+            <div class="image-label-container">
+                <span style="margin-bottom: 10px;">Candidate Symbol</span>
+                <img src="{{ Symbol }}" alt="Candidate Symbol" class="symbol">
+            </div>
+            <p><strong>Candidate Name:</strong> {{ CandidateName }}</p>
+            <p><strong>Contest Type:</strong> {{ ContestType }}</p>
+            {% if ContestType == "Party" %}
+                <p><strong>Party Name:</strong> {{ PartyName }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    
+    <p>Your vote has been successfully recorded.</p>
+    <footer>
+        <a href="{{ url_for('Home') }}">
+            <button>Logout</button>
+        </a>
+    </footer>
+</body>
+</html>

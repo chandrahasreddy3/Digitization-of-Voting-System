@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voting Page</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            width : 95vw;
+            box-sizing: border-box;
+            background: linear-gradient(to bottom right, #6a11cb, #2575fc);
+            background-size: cover;
+        }
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            color: white;
+            width: 100%;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        h1 {
+            font-size: 32px;
+            margin: 0;
+        }
+
+        .candidate-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 1000px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .candidate {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .candidate-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 1000px;
+            height: 600px;
+            padding: 10px;
+            overflow-y: auto;
+            max-height: 600px;
+            margin-bottom: 0px;
+        }
+
+        .candidate:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .info {
+            flex: 1;
+            margin-left: 20px;
+            font-size: 20px;
+            color: #333;
+            flex-direction: row;
+        }
+
+        .info p {
+            font-size: 20px;
+        }
+        .candidate-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .candidate-container::-webkit-scrollbar-thumb {
+            background: #2575fc;
+            border-radius: 8px;
+        }
+
+        .candidate:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+        img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+        }
+        .info {
+            flex: 1;
+            margin-left: 20px;
+            font-size: 20px;
+            color: #333;
+        }
+        button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 15px;
+            background-color: #3498db;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-3px);
+        }
+
+        .logout-btn {
+            background-color: red;
+            color: white;
+            font-size: 18px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .logout-btn:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>{{ constituency }} Constituency Voting Page</h1>
+    </header>
+    
+    <div class="candidate-container">
+        {% if candidates %}
+            {% for candidate in candidates %}
+            <div class="candidate">
+                <img src="{{ candidate['imagePath'] }}" alt="Candidate Photo">
+                <img src="{{ candidate['symbolPath'] }}" alt="Candidate Symbol">
+                <div class="info">
+                    <p><strong>Name:</strong> {{ candidate['name'] }}</p>
+                    <p><strong>Contest Type:</strong> {{ candidate['contestType'] }}</p>
+                    {% if candidate['contestType'] == "Party"%}
+                        <p><strong>Party Name:</strong> {{ candidate['partyName'] }}</p>
+                    {% endif %}
+                </div>
+                <div class="button-container">
+                    <button class="vote-btn"
+                            data-voter-aadhar="{{ Aadhar }}"
+                            data-candidate-aadhar="{{ candidate['aadhar'] }}"
+                            data-constituency="{{ constituency }}">
+                        Vote
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            <div class="candidate" style="height: 100px;">
+                <img src="../static/Nota.png" alt="NOTA Photo">
+                <div class="info">
+                    <p style="font-size: 40px; margin-left: 200px;" ><strong>Nota</strong></p>
+                </div>
+                <div class="button-container">
+                    <button class="vote-btn" onclick="castVote('{{ Aadhar }}', 'NOTA', '{{ constituency }}')">Vote</button>
+                </div>
+            </div>
+        {% else %}
+            <div style="display: flex; align-items: center; justify-content: center; font-size: 20px; color: red; font-weight: bolder;">
+                <p>No candidates registered for this Constituency!</p>
+            </div>
+        {% endif %}
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.vote-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (confirm("Are you sure you want to vote for this candidate?")) {
+                        const voterAadhar = button.getAttribute('data-voter-aadhar');
+                        const candidateAadhar = button.getAttribute('data-candidate-aadhar');
+                        const constituency = button.getAttribute('data-constituency');
+    
+                        fetch('/cast_vote', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                VoterAadhar: voterAadhar,
+                                CandidateAadhar: candidateAadhar,
+                                constituency: constituency
+                            })
+                        })
+                        .then(async response => {
+                            const contentType = response.headers.get('content-type');
+                            if (contentType && contentType.includes('application/json')) {
+                                const data = await response.json();
+                                if (data.status === "success" && data.redirect_url) {
+                                    window.location.href = data.redirect_url;
+                                } else {
+                                    alert("Error: " + (data.message || "Unexpected error"));
+                                }
+                            } else {
+                                throw new Error("Unexpected response format from server.");
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error casting vote:", error);
+                            alert("Error casting vote. Please try again.");
+                        });
+                    }
+                });
+            });
+        });
+    
+        function logout() {
+            window.location.href = "/";
+        }
+    </script>    
+</body>
+</html>
